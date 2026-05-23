@@ -91,7 +91,7 @@ function LoginPage() {
             </div>
           </div>
 
-          <Button type="submit" size="lg" className="w-full h-13 text-base rounded-full shadow-elevated">
+          <Button type="submit" size="lg" className="w-full h-12 text-base rounded-full shadow-elevated">
             Log In
           </Button>
 
