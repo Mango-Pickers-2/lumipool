@@ -1,4 +1,12 @@
+declare global {
+  interface Window {
+    chatwootSDK: any;
+    $chatwoot: any;
+  }
+}
+
 export function loadChatwoot() {
+  // Prevent multiple loads
   if (window.chatwootSDK) return;
 
   const BASE_URL = "https://app.chatwoot.com";

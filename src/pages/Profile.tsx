@@ -1,109 +1,303 @@
 import { useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+
+import {
+  ChevronRight,
+  Droplet,
+  LogOut,
+  MessageCircle,
+  Settings,
+  ShieldCheck,
+  TrendingUp,
+  User,
+  Wallet,
+  Wrench,
+  Package,
+  Zap,
+} from "lucide-react";
+
 import { Navbar } from "@/components/Navbar";
-import { useLumiStore } from "@/store/lumipool";
 import { Button } from "@/components/ui/button";
-import { Droplet, Zap, Star, Briefcase, Settings, MessageCircle, LogOut, TrendingUp, ChevronRight } from "lucide-react";
+
+import { supabase } from "@/lib/supabase";
+import { useLumiStore } from "@/store/lumipool";
 
 export default function Profile() {
   const user = useLumiStore((s) => s.currentUser);
   const logout = useLumiStore((s) => s.logout);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set page title
     document.title = "Profile — LumiPool";
-    
-    // Set meta description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute(
+
+    const meta = document.querySelector(
+      'meta[name="description"]'
+    );
+
+    if (meta) {
+      meta.setAttribute(
         "content",
-        "Your LumiPool account and impact overview."
+        "Manage your LumiPool account, wallet, clean energy activity and support."
       );
     }
   }, []);
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+
     logout();
+
     navigate("/login");
+  };
+
+  const getRoleTitle = () => {
+    switch (user.role) {
+      case "buyer":
+        return "Buyer";
+      case "supplier":
+        return "Supplier";
+      case "installer":
+        return "Installer";
+      default:
+        return "User";
+    }
+  };
+
+  const getRoleIcon = () => {
+    switch (user.role) {
+      case "buyer":
+        return <User className="h-5 w-5" />;
+      case "supplier":
+        return <Package className="h-5 w-5" />;
+      case "installer":
+        return <Wrench className="h-5 w-5" />;
+      default:
+        return <User className="h-5 w-5" />;
+    }
+  };
+
+  const getRoleStatus = () => {
+    switch (user.role) {
+      case "buyer":
+        return "Active Buyer";
+      case "supplier":
+        return "Verified Supplier";
+      case "installer":
+        return "Certified Installer";
+      default:
+        return "Active User";
+    }
+  };
+
+  const goToRoleProfile = () => {
+    if (user.role === "buyer") {
+      navigate("/buyer-profile");
+    }
+
+    if (user.role === "supplier") {
+      navigate("/supplier-profile");
+    }
+
+    if (user.role === "installer") {
+      navigate("/installer-profile");
+    }
   };
 
   return (
     <div className="min-h-screen bg-muted/20">
       <Navbar />
-      <main className="mx-auto max-w-[1100px] px-8 py-10">
-        <div className="text-xs font-bold uppercase tracking-wider text-primary">LumiPool Account Overview</div>
-        <div className="mt-2 flex items-center justify-between">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Welcome, {user.name}.</h1>
-          <span className="inline-flex items-center gap-2 rounded-full bg-success-soft px-4 py-1.5 text-sm font-semibold text-success">
-            <span className="h-2 w-2 rounded-full bg-success" /> Active Eco Saver
-          </span>
-        </div>
 
-        <div className="mt-8 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          {user.role === "buyer" ? "Your Renewable Energy Impact" : "Your Lifetime Performance"}
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-5">
-          {user.role === "buyer" && (
-            <>
-              <ImpactCard tone="success" icon={Droplet} label="Estimated Petrol Costs Saved" value="₦45,000 Saved" sub="Based on typical generator runtimes in Lagos during grid outages." />
-              <ImpactCard tone="primary" icon={Zap} label="Productivity Safe-Guard" value="120 Hours Saved" sub="Uninterrupted continuous power for remote work & office connectivity." />
-            </>
-          )}
-          {user.role === "supplier" && (
-            <>
-              <ImpactCard tone="primary" icon={Briefcase} label="Lifetime Orders Fulfilled" value="1,248 Units" sub="Across 32 group pool clusters in Lagos & Abuja." />
-              <ImpactCard tone="success" icon={Star} label="Reliability Score" value="4.9 / 5.0" sub="100% on-time hardware release rate." />
-            </>
-          )}
-          {user.role === "installer" && (
-            <>
-              <ImpactCard tone="primary" icon={Briefcase} label="Lifetime Jobs Fulfilled" value="312 Installs" sub="Avg 2.4 jobs per dispatch window." />
-              <ImpactCard tone="success" icon={Star} label="Average Customer Rating" value="4.9 / 5.0" sub="Based on 312 verified handover sign-offs." />
-            </>
-          )}
-        </div>
-
-        <div className="mt-6 rounded-2xl bg-card border border-border shadow-card p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-base font-bold text-foreground">⚙️ My System Details</span>
+      <main className="mx-auto max-w-[1200px] px-6 py-10">
+        {/* HEADER */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
+              {getRoleIcon()}
+              LumiPool {getRoleTitle()} Account
             </div>
-            <div className="text-xs font-mono text-muted-foreground">ID: LP-90812-YAB</div>
+
+            <h1 className="mt-4 text-4xl font-bold tracking-tight text-foreground">
+              Welcome back, {user.name}
+            </h1>
+
+            <p className="mt-3 max-w-2xl text-muted-foreground">
+              Manage your LumiPool account, clean energy participation,
+              escrow protection, transactions and operational activity
+              across the platform.
+            </p>
           </div>
-          <div className="mt-5 grid grid-cols-3 gap-4">
-            <div className="rounded-xl bg-muted/40 border border-border p-4">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Assigned Professional Installer</div>
-              <div className="text-base font-bold text-foreground mt-1">Chinedu O.</div>
-              <div className="text-xs text-primary mt-1">★★★★★</div>
-            </div>
-            <div className="rounded-xl bg-muted/40 border border-border p-4">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Hardware Warranty</div>
-              <div className="text-base font-bold text-foreground mt-1">23 Months Remaining</div>
-              <div className="text-xs text-success mt-1">100% Guaranteed Cover</div>
-            </div>
-            <div className="flex items-center justify-center">
-              <Button variant="outline" className="w-full"><TrendingUp className="h-4 w-4 mr-2" /> Request Upgrade</Button>
-            </div>
+
+          <div className="inline-flex items-center gap-2 rounded-full bg-success/10 px-5 py-3 text-sm font-semibold text-success border border-success/20">
+            <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+            {getRoleStatus()}
           </div>
         </div>
 
-        <div className="mt-6 space-y-2">
-          <RowLink icon={Settings} label="Account Settings" />
-          <RowLink icon={MessageCircle} label="Support Chat" trailing={<span className="text-xs text-success">● Support online</span>} />
+        {/* STATS */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+          <StatsCard
+            icon={Wallet}
+            label="Wallet Balance"
+            value={`₦${user.balance.toLocaleString()}`}
+            sub="Current operational balance"
+            tone="primary"
+          />
+
+          <StatsCard
+            icon={Zap}
+            label="Energy Impact"
+            value="124 kWh"
+            sub="Shared solar contribution"
+            tone="success"
+          />
+
+          <StatsCard
+            icon={Droplet}
+            label="Fuel Savings"
+            value="₦45,000"
+            sub="Estimated diesel savings"
+            tone="warning"
+          />
+
+          <StatsCard
+            icon={ShieldCheck}
+            label="Protection Status"
+            value="Secured"
+            sub="Escrow & warranty active"
+            tone="info"
+          />
+        </div>
+
+        {/* ACCOUNT OVERVIEW */}
+        <div className="mt-8 rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="border-b border-border px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">
+                  Account Overview
+                </h2>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Centralized operational summary for your LumiPool activity.
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-muted px-4 py-2 text-xs font-mono text-muted-foreground">
+                LP-{user.role.toUpperCase()}-2048
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 p-8">
+            <OverviewCard
+              title="Current Role"
+              value={getRoleTitle()}
+              sub="Your operational access level"
+            />
+
+            <OverviewCard
+              title="Verification"
+              value="Verified"
+              sub="KYC & identity confirmed"
+            />
+
+            <OverviewCard
+              title="Platform Status"
+              value="Operational"
+              sub="All services functioning normally"
+            />
+          </div>
+        </div>
+
+        {/* QUICK ACTIONS */}
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-foreground">
+            Quick Actions
+          </h2>
+
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ActionCard
+              icon={TrendingUp}
+              title="Open Dashboard"
+              description="View your role-based operational dashboard."
+              onClick={() => navigate("/dashboard")}
+            />
+
+            <ActionCard
+              icon={User}
+              title="Role Profile"
+              description="Manage your role-specific information and settings."
+              onClick={goToRoleProfile}
+            />
+
+            <ActionCard
+              icon={Settings}
+              title="Account Settings"
+              description="Update security, notifications and preferences."
+            />
+
+            <ActionCard
+              icon={MessageCircle}
+              title="Support & Complaints"
+              description="Reach LumiPool support instantly through Chatwoot."
+            />
+          </div>
+        </div>
+
+        {/* SECURITY */}
+        <div className="mt-8 rounded-3xl border border-success/20 bg-success/5 p-8">
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 rounded-full bg-success text-white flex items-center justify-center shrink-0">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-foreground">
+                Secure Transaction Protection
+              </h3>
+
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground max-w-3xl">
+                LumiPool protects all buyer, supplier and installer
+                transactions using escrow-based payment holding,
+                verified installation workflows and operational
+                confirmation before final settlement release.
+              </p>
+
+              <Button className="mt-5">
+                Learn More
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* LOGOUT */}
+        <div className="mt-8">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-between rounded-xl bg-destructive/5 border border-destructive/20 hover:bg-destructive/10 px-5 py-4 transition"
+            className="w-full flex items-center justify-between rounded-2xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/10 px-6 py-5 transition"
           >
-            <div className="flex items-center gap-3">
-              <LogOut className="h-5 w-5 text-destructive" />
-              <span className="font-semibold text-destructive">Log Out</span>
+            <div className="flex items-center gap-4">
+              <div className="h-11 w-11 rounded-full bg-destructive text-white flex items-center justify-center">
+                <LogOut className="h-5 w-5" />
+              </div>
+
+              <div className="text-left">
+                <div className="font-semibold text-destructive">
+                  Log Out
+                </div>
+
+                <div className="text-sm text-muted-foreground">
+                  End your current LumiPool session securely.
+                </div>
+              </div>
             </div>
-            <ChevronRight className="h-4 w-4 text-destructive" />
+
+            <ChevronRight className="h-5 w-5 text-destructive" />
           </button>
         </div>
       </main>
@@ -111,45 +305,96 @@ export default function Profile() {
   );
 }
 
-function ImpactCard({ icon: Icon, label, value, sub, tone }: any) {
-  const tones: Record<string, string> = {
-    success: "bg-success-soft border-success/20",
-    primary: "bg-primary-soft border-primary/20",
+function StatsCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  tone,
+}: any) {
+  const toneStyles: Record<string, string> = {
+    primary: "border-primary/20 bg-primary/5",
+    success: "border-success/20 bg-success/5",
+    warning: "border-yellow-500/20 bg-yellow-500/5",
+    info: "border-blue-500/20 bg-blue-500/5",
   };
-  const dot: Record<string, string> = {
-    success: "bg-success text-success-foreground",
-    primary: "bg-primary text-primary-foreground",
-  };
-  const text: Record<string, string> = {
-    success: "text-success",
-    primary: "text-primary",
-  };
+
   return (
-    <div className={`rounded-2xl border p-6 ${tones[tone]}`}>
-      <div className="flex items-start gap-4">
-        <div className={`h-11 w-11 rounded-full flex items-center justify-center shrink-0 ${dot[tone]}`}>
-          <Icon className="h-5 w-5" />
-        </div>
+    <div
+      className={`rounded-2xl border p-6 ${toneStyles[tone]}`}
+    >
+      <div className="flex items-start justify-between">
         <div>
-          <div className="text-xs uppercase tracking-wider font-bold text-muted-foreground">{label}</div>
-          <div className={`text-2xl font-bold mt-1 ${text[tone]}`}>{value}</div>
-          <div className="text-xs text-muted-foreground mt-2 leading-snug">{sub}</div>
+          <div className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+            {label}
+          </div>
+
+          <div className="mt-2 text-3xl font-bold text-foreground">
+            {value}
+          </div>
+
+          <div className="mt-2 text-sm text-muted-foreground">
+            {sub}
+          </div>
+        </div>
+
+        <div className="h-12 w-12 rounded-full bg-background border border-border flex items-center justify-center">
+          <Icon className="h-5 w-5 text-foreground" />
         </div>
       </div>
     </div>
   );
 }
 
-function RowLink({ icon: Icon, label, trailing }: any) {
+function OverviewCard({
+  title,
+  value,
+  sub,
+}: any) {
   return (
-    <button className="w-full flex items-center justify-between rounded-xl bg-card border border-border hover:bg-muted/40 px-5 py-4 transition">
-      <div className="flex items-center gap-3">
-        <Icon className="h-5 w-5 text-muted-foreground" />
-        <span className="font-medium text-foreground">{label}</span>
+    <div className="rounded-2xl border border-border bg-muted/30 p-6">
+      <div className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+        {title}
       </div>
-      <div className="flex items-center gap-3">
-        {trailing}
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+
+      <div className="mt-2 text-2xl font-bold text-foreground">
+        {value}
+      </div>
+
+      <div className="mt-2 text-sm text-muted-foreground">
+        {sub}
+      </div>
+    </div>
+  );
+}
+
+function ActionCard({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: any) {
+  return (
+    <button
+      onClick={onClick}
+      className="group rounded-2xl border border-border bg-card hover:bg-muted/40 transition p-6 text-left"
+    >
+      <div className="flex items-start justify-between">
+        <div className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+          <Icon className="h-5 w-5" />
+        </div>
+
+        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition" />
+      </div>
+
+      <div className="mt-5">
+        <div className="text-lg font-bold text-foreground">
+          {title}
+        </div>
+
+        <div className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </div>
       </div>
     </button>
   );

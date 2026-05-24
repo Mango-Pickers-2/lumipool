@@ -1,18 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Activity,
-  Package,
-  CheckCircle2,
-  TrendingUp,
-  ShieldCheck,
-  MessageCircle,
-  LucideIcon,
+  Activity, Package, CheckCircle2,
+  TrendingUp, ShieldCheck, LucideIcon,
 } from "lucide-react";
-
 import { supabase } from "@/lib/supabase";
 import { useLumiStore } from "@/store/lumipool";
 import { Button } from "@/components/ui/button";
-import { loadChatwoot } from "@/lib/chatwoot";
 
 interface StatCardProps {
   icon: LucideIcon;
@@ -30,10 +23,6 @@ export function SupplierDashboard() {
   const [dbOrders, setDbOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
-  useEffect(() => {
-    loadChatwoot();
-  }, []);
-
   const network = useMemo(
     () => networkState.filter((n) => n.type === "supplier"),
     [networkState]
@@ -41,28 +30,24 @@ export function SupplierDashboard() {
 
   const me = network[0];
 
-  // Merge Supabase + Zustand orders
+  // Merge Supabase orders + Zustand orders (deduplicated by id)
   const orders = useMemo(() => {
     const map = new Map<string, any>();
-
     dbOrders.forEach((o) =>
       map.set(o.id, {
         ...o,
         createdAt: o.created_at,
       })
     );
-
     zustandOrders.forEach((o) => {
       if (!map.has(o.id)) map.set(o.id, o);
     });
-
     return Array.from(map.values());
   }, [dbOrders, zustandOrders]);
 
   useEffect(() => {
     async function fetchOrders() {
       setLoadingOrders(true);
-
       const { data, error } = await supabase
         .from("purchase_orders")
         .select("*")
@@ -71,14 +56,13 @@ export function SupplierDashboard() {
       if (!error && data) {
         setDbOrders(data);
       }
-
       setLoadingOrders(false);
     }
-
     fetchOrders();
   }, []);
 
   async function handleConfirmInventory(orderId: string) {
+    // Update Supabase
     const { error } = await supabase
       .from("purchase_orders")
       .update({ status: "picked-up" })
@@ -89,12 +73,10 @@ export function SupplierDashboard() {
       return;
     }
 
-    // Update local state
+    // Update local DB state
     setDbOrders((prev) =>
       prev.map((o) =>
-        o.id === orderId
-          ? { ...o, status: "picked-up" }
-          : o
+        o.id === orderId ? { ...o, status: "picked-up" } : o
       )
     );
 
@@ -104,7 +86,6 @@ export function SupplierDashboard() {
 
   const avgLoad = useMemo(() => {
     if (!network.length) return 0;
-
     return Math.round(
       network.reduce((a, b) => a + b.capacityLoad, 0) / network.length
     );
@@ -119,40 +100,21 @@ export function SupplierDashboard() {
 
   return (
     <div>
-      {/* HEADER */}
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Supplier Hub
           </h1>
-
           <p className="text-sm text-muted-foreground mt-1">
-            Monitor purchase orders, inventory releases and supplier network
-            activity.
+            Monitor purchase orders, inventory releases and network load.
           </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() => {
-              if (window.$chatwoot) {
-                window.$chatwoot.toggle("open");
-              }
-            }}
-          >
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Support
-          </Button>
-
-          <div className="flex items-center gap-2 rounded-full bg-success-soft px-4 py-2 text-sm font-semibold text-success">
-            <Activity className="h-4 w-4" />
-            {me.capacityLoad}% Capacity
-          </div>
+        <div className="flex items-center gap-2 rounded-full bg-success-soft px-4 py-2 text-sm font-semibold text-success">
+          <Activity className="h-4 w-4" /> {me.capacityLoad}% Capacity
         </div>
       </div>
 
-      {/* STATS */}
+      {/* Stats */}
       <div className="grid grid-cols-4 gap-5 mb-6">
         <StatCard
           icon={Package}
@@ -161,7 +123,6 @@ export function SupplierDashboard() {
           sub="Across 32 pool clusters"
           tone="primary"
         />
-
         <StatCard
           icon={CheckCircle2}
           label="Orders Fulfilled"
@@ -169,7 +130,6 @@ export function SupplierDashboard() {
           sub="This month"
           tone="success"
         />
-
         <StatCard
           icon={TrendingUp}
           label="Avg Network Load"
@@ -177,7 +137,6 @@ export function SupplierDashboard() {
           sub="Across all supplier nodes"
           tone="primary"
         />
-
         <StatCard
           icon={ShieldCheck}
           label="Reliability Score"
@@ -188,7 +147,7 @@ export function SupplierDashboard() {
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        {/* PURCHASE ORDERS */}
+        {/* Purchase Orders */}
         <div className="col-span-2 space-y-4">
           <div className="rounded-2xl bg-card border border-border shadow-card p-6">
             <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-5">
@@ -206,17 +165,14 @@ export function SupplierDashboard() {
                     <div className="text-sm font-bold text-foreground">
                       PO-90812 · 5x 5kVA Solar Micro-Bundle
                     </div>
-
                     <div className="text-xs text-muted-foreground mt-1">
                       Safe-Hold Confirmed · Awaiting inventory release
                     </div>
                   </div>
-
                   <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">
                     Pending
                   </span>
                 </div>
-
                 <div className="mt-4">
                   <Button size="sm" variant="outline" disabled>
                     Confirm Inventory
@@ -235,40 +191,26 @@ export function SupplierDashboard() {
                         <div className="text-sm font-bold text-foreground">
                           {order.id} · {order.description}
                         </div>
-
                         <div className="text-xs text-muted-foreground mt-1">
-                          {new Date(order.createdAt).toLocaleDateString(
-                            "en-NG",
-                            {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            }
-                          )}
+                          {new Date(order.createdAt).toLocaleDateString("en-NG", {
+                            day: "numeric", month: "short", year: "numeric",
+                          })}
                         </div>
                       </div>
-
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-                          order.status === "picked-up"
-                            ? "bg-success-soft text-success"
-                            : "bg-primary-soft text-primary"
-                        }`}
-                      >
-                        {order.status === "picked-up"
-                          ? "Fulfilled"
-                          : "Pending Release"}
+                      <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
+                        order.status === "picked-up"
+                          ? "bg-success-soft text-success"
+                          : "bg-primary-soft text-primary"
+                      }`}>
+                        {order.status === "picked-up" ? "Fulfilled" : "Pending Release"}
                       </span>
                     </div>
 
-                    {order.status ===
-                      "safe-hold-confirmed" && (
+                    {order.status === "safe-hold-confirmed" && (
                       <div className="mt-4">
                         <Button
                           size="sm"
-                          onClick={() =>
-                            handleConfirmInventory(order.id)
-                          }
+                          onClick={() => handleConfirmInventory(order.id)}
                         >
                           <CheckCircle2 className="h-4 w-4 mr-2" />
                           Confirm Inventory Release
@@ -282,13 +224,12 @@ export function SupplierDashboard() {
           </div>
         </div>
 
-        {/* SUPPLIER NETWORK */}
+        {/* Network Nodes */}
         <div className="space-y-4">
           <div className="rounded-2xl bg-card border border-border shadow-card p-6">
             <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-5">
               Supplier Network
             </div>
-
             <div className="space-y-3">
               {network.map((node) => (
                 <div
@@ -299,12 +240,10 @@ export function SupplierDashboard() {
                     <div className="text-sm font-semibold text-foreground">
                       {node.name}
                     </div>
-
                     <div className="text-xs text-muted-foreground">
                       {node.location}
                     </div>
                   </div>
-
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                       <div
@@ -315,12 +254,9 @@ export function SupplierDashboard() {
                             ? "bg-primary"
                             : "bg-success"
                         }`}
-                        style={{
-                          width: `${node.capacityLoad}%`,
-                        }}
+                        style={{ width: `${node.capacityLoad}%` }}
                       />
                     </div>
-
                     <span className="text-xs font-mono text-muted-foreground w-8 text-right">
                       {node.capacityLoad}%
                     </span>
@@ -329,73 +265,27 @@ export function SupplierDashboard() {
               ))}
             </div>
           </div>
-
-          {/* SUPPORT CARD */}
-          <div className="rounded-2xl border border-border bg-card shadow-card p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-full bg-primary-soft flex items-center justify-center">
-                <MessageCircle className="h-5 w-5 text-primary" />
-              </div>
-
-              <div>
-                <div className="text-sm font-bold text-foreground">
-                  Need assistance?
-                </div>
-
-                <div className="text-xs text-muted-foreground">
-                  Reach Lumipool support instantly.
-                </div>
-              </div>
-            </div>
-
-            <Button
-              className="w-full"
-              onClick={() => {
-                if (window.$chatwoot) {
-                  window.$chatwoot.toggle("open");
-                }
-              }}
-            >
-              Open Support Chat
-            </Button>
-          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  tone,
-}: StatCardProps) {
+function StatCard({ icon: Icon, label, value, sub, tone }: StatCardProps) {
   const tones: Record<string, string> = {
     success: "bg-success-soft text-success",
     primary: "bg-primary-soft text-primary",
   };
-
   return (
     <div className="rounded-2xl bg-card border border-border shadow-card p-5">
-      <div
-        className={`h-9 w-9 rounded-lg flex items-center justify-center ${tones[tone]}`}
-      >
+      <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${tones[tone]}`}>
         <Icon className="h-5 w-5" />
       </div>
-
       <div className="mt-4 text-xs uppercase tracking-wider text-muted-foreground font-semibold">
         {label}
       </div>
-
-      <div className="mt-1 text-2xl font-bold text-foreground">
-        {value}
-      </div>
-
-      <div className="text-xs text-muted-foreground mt-1">
-        {sub}
-      </div>
+      <div className="mt-1 text-2xl font-bold text-foreground">{value}</div>
+      <div className="text-xs text-muted-foreground mt-1">{sub}</div>
     </div>
   );
 }
