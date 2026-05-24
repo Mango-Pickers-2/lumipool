@@ -24,7 +24,7 @@ export interface NetworkNode {
   name: string;
   type: "supplier" | "installer";
   location: string;
-  capacityLoad: number; // 0-100
+  capacityLoad: number;
 }
 
 export interface PurchaseOrder {
@@ -49,9 +49,10 @@ interface LumiState {
   networkState: NetworkNode[];
   purchaseOrders: PurchaseOrder[];
   dispatchJobs: DispatchJob[];
-  trackerStage: 0 | 1 | 2 | 3 | 4; // 0 none, 1 pool completed, 2 order, 3 dispatch, 4 setup
+  trackerStage: 0 | 1 | 2 | 3 | 4;
   login: (role: Role) => void;
   logout: () => void;
+  setUser: (user: CurrentUser) => void;
   joinPool: () => void;
   confirmInventory: (orderId: string) => void;
   completeJob: (jobId: string) => void;
@@ -95,7 +96,16 @@ export const useLumiStore = create<LumiState>((set, get) => ({
       },
     }),
 
-  logout: () => set({ currentUser: null, activePool: initialPool, purchaseOrders: [], dispatchJobs: [], trackerStage: 0 }),
+  setUser: (user) => set({ currentUser: user }),
+
+  logout: () =>
+    set({
+      currentUser: null,
+      activePool: initialPool,
+      purchaseOrders: [],
+      dispatchJobs: [],
+      trackerStage: 0,
+    }),
 
   joinPool: () => {
     const { activePool } = get();
@@ -135,7 +145,9 @@ export const useLumiStore = create<LumiState>((set, get) => ({
 
   confirmInventory: (orderId) =>
     set((s) => ({
-      purchaseOrders: s.purchaseOrders.map((o) => (o.id === orderId ? { ...o, status: "picked-up" } : o)),
+      purchaseOrders: s.purchaseOrders.map((o) =>
+        o.id === orderId ? { ...o, status: "picked-up" } : o,
+      ),
       trackerStage: 3,
     })),
 
@@ -146,7 +158,11 @@ export const useLumiStore = create<LumiState>((set, get) => ({
     })),
 
   topUp: (amount) =>
-    set((s) => (s.currentUser ? { currentUser: { ...s.currentUser, balance: s.currentUser.balance + amount } } : s)),
+    set((s) =>
+      s.currentUser
+        ? { currentUser: { ...s.currentUser, balance: s.currentUser.balance + amount } }
+        : s,
+    ),
 }));
 
 export const formatNaira = (n: number) => `₦${n.toLocaleString("en-NG")}`;

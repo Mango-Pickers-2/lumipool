@@ -1,27 +1,35 @@
-import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { useLumiStore } from "@/store/lumipool";
 import { Button } from "@/components/ui/button";
 import { Droplet, Zap, Star, Briefcase, Settings, MessageCircle, LogOut, TrendingUp, ChevronRight } from "lucide-react";
 
-export const Route = createFileRoute("/profile")({
-  head: () => ({
-    meta: [
-      { title: "Profile — LumiPool" },
-      { name: "description", content: "Your LumiPool account and impact overview." },
-    ],
-  }),
-  component: ProfilePage,
-});
-
-function ProfilePage() {
+export default function Profile() {
   const user = useLumiStore((s) => s.currentUser);
   const logout = useLumiStore((s) => s.logout);
   const navigate = useNavigate();
 
-  if (!user) return <Navigate to="/login" />;
+  useEffect(() => {
+    // Set page title
+    document.title = "Profile — LumiPool";
+    
+    // Set meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        "content",
+        "Your LumiPool account and impact overview."
+      );
+    }
+  }, []);
 
-  const handleLogout = () => { logout(); navigate({ to: "/login" }); };
+  if (!user) return <Navigate to="/login" replace />;
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-muted/20">

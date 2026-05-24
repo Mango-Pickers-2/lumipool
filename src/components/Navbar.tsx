@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { Wallet } from "lucide-react";
 import { useLumiStore, formatNaira } from "@/store/lumipool";
 import { Logo } from "./Logo";
@@ -14,12 +14,14 @@ export function Navbar() {
         <Link to="/dashboard"><Logo /></Link>
         {user && (
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 rounded-full bg-primary-soft px-4 py-1.5 text-sm font-medium text-primary">
-              <Wallet className="h-4 w-4" />
-              Wallet: {formatNaira(user.balance)}
-            </div>
+            {user.role === "buyer" && (
+              <div className="flex items-center gap-2 rounded-full bg-primary-soft px-4 py-1.5 text-sm font-medium text-primary">
+                <Wallet className="h-4 w-4" />
+                Wallet: {formatNaira(user.balance)}
+              </div>
+            )}
             <button
-              onClick={() => navigate({ to: "/profile" })}
+              onClick={() => navigate("/profile")}
               className="flex items-center gap-2 rounded-full hover:bg-muted px-2 py-1"
             >
               <div className="text-right hidden sm:block">
