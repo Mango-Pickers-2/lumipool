@@ -6,7 +6,7 @@
   "scripts": {
    "dev": "vite dev",
   "build": "vite build",
-  "start": "node dist/server/index.js",
+  "start": "HOST=0.0.0.0 PORT=$PORT node dist/server/index.js",
   "build:dev": "vite build --mode development",
   "preview": "vite preview",
   "lint": "eslint .",
