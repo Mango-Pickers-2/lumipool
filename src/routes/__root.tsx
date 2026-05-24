@@ -15,7 +15,9 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">
+          Page not found
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.
         </p>
@@ -32,7 +34,13 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
   console.error(error);
   const router = useRouter();
 
@@ -55,6 +63,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             Try again
           </button>
+
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
@@ -67,31 +76,68 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Lumipool App" },
-      { name: "description", content: "Lumipool is a high-trust, group-buying platform designed to make tier-one solar power accessible and affordable for African SMEs and remote workers." },
+      {
+        name: "description",
+        content:
+          "Lumipool is a high-trust, group-buying platform designed to make tier-one solar power accessible and affordable for African SMEs and remote workers.",
+      },
       { name: "author", content: "Lovable" },
+
       { property: "og:title", content: "Lumipool App" },
-      { property: "og:description", content: "Lumipool is a high-trust, group-buying platform designed to make tier-one solar power accessible and affordable for African SMEs and remote workers." },
+      {
+        property: "og:description",
+        content:
+          "Lumipool is a high-trust, group-buying platform designed to make tier-one solar power accessible and affordable for African SMEs and remote workers.",
+      },
       { property: "og:type", content: "website" },
+
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Lumipool App" },
-      { name: "twitter:description", content: "Lumipool is a high-trust, group-buying platform designed to make tier-one solar power accessible and affordable for African SMEs and remote workers." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/74db5090-5c84-49bc-92b5-125cbb71cc70/id-preview-de98a7bd--e48579b3-64e3-45e5-8c98-e9996ee6828a.lovable.app-1779575189126.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/74db5090-5c84-49bc-92b5-125cbb71cc70/id-preview-de98a7bd--e48579b3-64e3-45e5-8c98-e9996ee6828a.lovable.app-1779575189126.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Lumipool is a high-trust, group-buying platform designed to make tier-one solar power accessible and affordable for African SMEs and remote workers.",
+      },
+
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/74db5090-5c84-49bc-92b5-125cbb71cc70/id-preview-de98a7bd--e48579b3-64e3-45e5-8c98-e9996ee6828a.lovable.app-1779575189126.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/74db5090-5c84-49bc-92b5-125cbb71cc70/id-preview-de98a7bd--e48579b3-64e3-45e5-8c98-e9996ee6828a.lovable.app-1779575189126.png",
+      },
     ],
+
     links: [
+      { rel: "icon", href: "/favicon.ico" },
+
       { rel: "stylesheet", href: appCss },
+
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+      },
     ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
