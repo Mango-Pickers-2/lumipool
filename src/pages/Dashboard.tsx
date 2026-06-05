@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 
 import { supabase } from "@/lib/supabase";
-import { loadChatwoot } from "@/lib/chatwoot";
 
 import { Navbar } from "@/components/Navbar";
 
@@ -30,9 +29,6 @@ export default function Dashboard() {
       );
     }
 
-    // Load Chatwoot once globally
-    loadChatwoot();
-
     async function restoreSession() {
       try {
         const {
@@ -44,16 +40,13 @@ export default function Dashboard() {
           return;
         }
 
-        // Restore Zustand after refresh
         if (!user) {
           const metadata = session.user.user_metadata;
           const role = metadata?.role ?? "buyer";
 
           setUser({
             name: metadata?.name ?? "LumiPool User",
-
             role,
-
             balance: role === "buyer" ? 100000 : role === "supplier" ? 4800000 : 320000,
           });
         }
@@ -67,11 +60,10 @@ export default function Dashboard() {
     restoreSession();
   }, [setUser, user]);
 
-  // Loading Screen
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4 text-center">
-        <div className="flex flex-col items-center gap-4 text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
 
           <p className="text-sm text-muted-foreground">Loading dashboard...</p>
@@ -80,7 +72,6 @@ export default function Dashboard() {
     );
   }
 
-  // No User
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -89,7 +80,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-muted/20 overflow-x-hidden">
       <Navbar />
 
-      <main className="mx-auto w-full max-w-[1440px] px-3 sm:px-6 lg:px-8 py-4 md:py-8 overflow-x-hidden">
+      <main className="mx-auto w-full max-w-[1440px] px-3 py-4 sm:px-6 md:py-8 lg:px-8 overflow-x-hidden">
         {user.role === "buyer" && <BuyerDashboard />}
 
         {user.role === "supplier" && <SupplierDashboard />}

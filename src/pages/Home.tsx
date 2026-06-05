@@ -1,11 +1,5 @@
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  ShieldCheck,
-  MapPin,
-  Users,
-  Wrench,
-} from "lucide-react";
+import { ArrowRight, ShieldCheck, MapPin, Users, Wrench } from "lucide-react";
 
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
@@ -50,9 +44,10 @@ export default function Home() {
       <main className="flex-1">
         <section className="mx-auto max-w-[1440px] px-8 py-20 grid lg:grid-cols-2 gap-16 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary mb-8">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              Introducing group-buying for clean energy
+            <div className="inline-flex items-center rounded-full bg-primary-soft px-5 py-3">
+              <span className="text-sm font-semibold uppercase tracking-[0.08em] text-primary">
+                Introducing Group-Buying for Clean Energy
+              </span>
             </div>
 
             <h1 className="text-6xl font-bold tracking-tight leading-[1.05] text-foreground">
@@ -62,28 +57,20 @@ export default function Home() {
             </h1>
 
             <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed">
-              Join a community pool to unlock wholesale prices on tier-one
-              solar bundles. Secure escrow, smart-routed installation, and zero
-              hardware risk.
+              Join a community pool to unlock wholesale prices on tier-one solar bundles. Secure
+              escrow, smart-routed installation, and zero hardware risk.
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
               <Link to="/login">
-                <Button
-                  size="lg"
-                  className="h-14 px-8 text-base rounded-full shadow-elevated"
-                >
+                <Button size="lg" className="h-14 px-8 text-base rounded-full shadow-elevated">
                   Find My Bundle
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
 
               <Link to="/login">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-14 px-8 text-base rounded-full"
-                >
+                <Button size="lg" variant="outline" className="h-14 px-8 text-base rounded-full">
                   Join a Solar Pool
                 </Button>
               </Link>
@@ -102,11 +89,7 @@ export default function Home() {
                 body="Up to 15% off regular hardware rates."
               />
 
-              <Feature
-                icon={Wrench}
-                title="Premium Install"
-                body="Vetted local solar engineers."
-              />
+              <Feature icon={Wrench} title="Premium Install" body="Vetted local solar engineers." />
             </div>
           </div>
 
@@ -118,35 +101,23 @@ export default function Home() {
             <div className="flex items-center gap-2 text-foreground">
               <MapPin className="h-4 w-4 text-primary" />
 
-              <span className="font-medium">
-                Smart-Routed to 50+ Verified Installers in Lagos.
-              </span>
+              <span className="font-medium">Smart-Routed to 50+ Verified Installers in Lagos.</span>
             </div>
 
             <div className="flex items-center gap-2 text-foreground">
               <ShieldCheck className="h-4 w-4 text-success" />
 
-              <span className="font-medium">
-                100% Escrow Protection.
-              </span>
+              <span className="font-medium">100% Escrow Protection.</span>
             </div>
 
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="font-semibold tracking-wider">
-                OUR PARTNERS:
-              </span>
+              <span className="font-semibold tracking-wider">OUR PARTNERS:</span>
 
-              <span className="font-bold text-foreground">
-                SOLAR-TECH
-              </span>
+              <span className="font-bold text-foreground">SOLAR-TECH</span>
 
-              <span className="font-bold text-foreground">
-                LUMEN
-              </span>
+              <span className="font-bold text-foreground">LUMEN</span>
 
-              <span className="font-bold text-foreground">
-                POWER-GRID
-              </span>
+              <span className="font-bold text-foreground">POWER-GRID</span>
             </div>
           </div>
         </section>
@@ -155,26 +126,14 @@ export default function Home() {
   );
 }
 
-function Feature({
-  icon: Icon,
-  title,
-  body,
-}: {
-  icon: any;
-  title: string;
-  body: string;
-}) {
+function Feature({ icon: Icon, title, body }: { icon: any; title: string; body: string }) {
   return (
     <div>
       <Icon className="h-5 w-5 text-primary mb-2" />
 
-      <div className="font-semibold text-sm text-foreground">
-        {title}
-      </div>
+      <div className="font-semibold text-sm text-foreground">{title}</div>
 
-      <div className="text-xs text-muted-foreground mt-1 leading-snug">
-        {body}
-      </div>
+      <div className="text-xs text-muted-foreground mt-1 leading-snug">{body}</div>
     </div>
   );
 }
@@ -188,33 +147,22 @@ function PoolPreviewCard() {
             ACTIVE SOLAR POOL
           </div>
 
-          <div className="text-xs text-muted-foreground font-medium">
-            ⏱ 2d 14h left
-          </div>
+          <div className="text-xs text-muted-foreground font-medium">⏱ 2d 14h left</div>
         </div>
 
-        <h3 className="mt-4 text-2xl font-bold text-foreground">
-          Yaba Pool Cluster
-        </h3>
+        <h3 className="mt-4 text-2xl font-bold text-foreground">Yaba Pool Cluster</h3>
 
-        <p className="text-sm text-muted-foreground">
-          5kVA Solar Micro-Bundle
-        </p>
+        <p className="text-sm text-muted-foreground">5kVA Solar Micro-Bundle</p>
 
         <div className="mt-6">
           <div className="flex justify-between text-sm font-medium mb-2">
             <span>Group Pool Progress</span>
 
-            <span className="text-success">
-              4 / 5 Buyers Joined
-            </span>
+            <span className="text-success">4 / 5 Buyers Joined</span>
           </div>
 
           <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full bg-success rounded-full"
-              style={{ width: "80%" }}
-            />
+            <div className="h-full bg-success rounded-full" style={{ width: "80%" }} />
           </div>
         </div>
       </div>

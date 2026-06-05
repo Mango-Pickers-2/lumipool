@@ -5,16 +5,16 @@ export default function SupportChat() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const handleChatwootReady = () => {
+    const handleReady = () => {
       if (window.$chatwoot) {
         window.$chatwoot.toggle("close");
       }
     };
 
-    window.addEventListener("chatwoot:ready", handleChatwootReady);
+    window.addEventListener("chatwoot:ready", handleReady);
 
     return () => {
-      window.removeEventListener("chatwoot:ready", handleChatwootReady);
+      window.removeEventListener("chatwoot:ready", handleReady);
     };
   }, []);
 
@@ -39,20 +39,20 @@ export default function SupportChat() {
       {/* Pulse Ring */}
       <div className="absolute inset-0 rounded-full bg-primary/30 animate-ping" />
 
-      {/* Chat Button */}
+      {/* Floating Button */}
       <button
         onClick={toggleChat}
         aria-label="Open Support Chat"
         className="
           relative
-          h-14 w-14 
+          flex items-center justify-center
+          h-14 w-14
           sm:h-16 sm:w-16
           rounded-full
           bg-primary
           text-primary-foreground
-          shadow-2xl
           border border-primary/20
-          flex items-center justify-center
+          shadow-2xl
           transition-all duration-300
           hover:scale-105
           active:scale-95
@@ -65,20 +65,23 @@ export default function SupportChat() {
         )}
       </button>
 
-      {/* Floating Label */}
+      {/* Desktop Label */}
       <div
         className="
-          absolute right-20 bottom-3
+          hidden md:flex
+          absolute
+          right-20
+          bottom-3
+          items-center
+          gap-2
           whitespace-nowrap
           rounded-full
-          bg-card
           border border-border
-          shadow-lg
+          bg-card
           px-4 py-2
           text-sm font-medium
           text-foreground
-          hidden md:flex
-          items-center gap-2
+          shadow-lg
         "
       >
         <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
