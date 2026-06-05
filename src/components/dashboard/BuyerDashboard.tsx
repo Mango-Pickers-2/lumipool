@@ -1,7 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Laptop, Wifi, Tv, ShieldCheck, Plus, HelpCircle,
-  CheckCircle2, Circle, Truck, Wrench, LucideIcon,
+  Laptop,
+  Wifi,
+  Tv,
+  ShieldCheck,
+  Plus,
+  HelpCircle,
+  CheckCircle2,
+  Circle,
+  Truck,
+  Wrench,
+  LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -36,11 +45,7 @@ export function BuyerDashboard() {
       setLoading(true);
 
       // Fetch pool from Supabase
-      const { data, error } = await supabase
-        .from("pools")
-        .select("*")
-        .eq("id", "Yaba-01")
-        .single();
+      const { data, error } = await supabase.from("pools").select("*").eq("id", "Yaba-01").single();
 
       if (error) {
         // Table exists but no row yet — insert the default pool
@@ -111,32 +116,28 @@ export function BuyerDashboard() {
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-sm text-muted-foreground">
-        Loading dashboard...
-      </div>
+      <div className="py-20 text-center text-sm text-muted-foreground">Loading dashboard...</div>
     );
   }
 
   if (!user || !pool) {
     return (
-      <div className="py-20 text-center text-sm text-muted-foreground">
-        Loading dashboard...
-      </div>
+      <div className="py-20 text-center text-sm text-muted-foreground">Loading dashboard...</div>
     );
   }
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
             Buyer Hub
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Manage your solar pool memberships, bundles and escrow balance.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <Button variant="outline">
             <HelpCircle className="h-4 w-4 mr-2" />
             Support Guide
@@ -148,36 +149,38 @@ export function BuyerDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
           {/* Bundle Recommendation */}
-          <div className="rounded-2xl bg-card border border-border shadow-card p-7">
-            <div className="flex items-start justify-between">
+          <div className="rounded-2xl bg-card border border-border shadow-card p-5 md:p-7">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div>
                 <span className="inline-block rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
                   Highly recommended for you
                 </span>
-                <h2 className="mt-4 text-2xl font-bold text-foreground">
+                <h2 className="mt-4 text-xl md:text-2xl font-bold text-foreground">
                   5kVA Micro-Bundle
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   Perfect for hybrid work setups.
                 </p>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <div className="text-xs text-muted-foreground">Approx. Price</div>
-                <div className="text-2xl font-bold text-foreground">₦450,000</div>
+                <div className="text-xl md:text-2xl font-bold text-foreground">₦450,000</div>
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-3">
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Spec icon={Laptop} title="Professional Laptop" sub="Continuous charge" />
               <Spec icon={Wifi} title="WiFi Router" sub="24/7 Connectivity" />
               <Spec icon={Tv} title="LED Smart TV" sub="Up to 8 hours daily" />
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button variant="outline" className="h-12">Buy Alone</Button>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button variant="outline" className="h-12">
+                Buy Alone
+              </Button>
               <Button className="h-12" onClick={handleJoinPool}>
                 👥 Join Solar Pool (-10%)
               </Button>
@@ -186,16 +189,14 @@ export function BuyerDashboard() {
 
           {/* Active Pool */}
           <div className="rounded-2xl bg-card border border-border shadow-card p-6">
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <span className="inline-block rounded-full bg-success-soft px-3 py-1 text-xs font-semibold uppercase tracking-wide text-success">
                 Active Solar Pool
               </span>
-              <span className="text-xs font-medium text-muted-foreground">
-                ⏱ 2d 14h left
-              </span>
+              <span className="text-xs font-medium text-muted-foreground">⏱ 2d 14h left</span>
             </div>
 
-            <h4 className="mt-3 text-xl font-bold text-foreground">
+            <h4 className="mt-3 text-lg md:text-xl font-bold text-foreground">
               {dbPool?.cluster ?? pool.cluster}
             </h4>
 
@@ -214,24 +215,20 @@ export function BuyerDashboard() {
               </div>
             </div>
 
-            <div className="mt-6 rounded-xl bg-success-soft border border-success/20 p-4 flex items-center justify-between">
+            <div className="mt-6 rounded-xl bg-success-soft border border-success/20 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 rounded-lg bg-success flex items-center justify-center shrink-0">
                   <ShieldCheck className="h-5 w-5 text-success-foreground" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-foreground">
-                    🔒 Zero-Risk Safe-Hold
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Protected escrow system.
-                  </div>
+                  <div className="text-sm font-bold text-foreground">🔒 Zero-Risk Safe-Hold</div>
+                  <div className="text-xs text-muted-foreground">Protected escrow system.</div>
                 </div>
               </div>
               <Button
                 onClick={handleJoinPool}
                 disabled={pool.status === "filled"}
-                className="bg-success hover:bg-success/90"
+                className="w-full md:w-auto bg-success hover:bg-success/90"
               >
                 {pool.status === "filled" ? "Pool Locked" : "Join Pool"}
               </Button>
@@ -242,28 +239,24 @@ export function BuyerDashboard() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Wallet */}
-          <div className="rounded-2xl bg-card border border-border shadow-card p-6">
+          <div className="rounded-2xl bg-card border border-border shadow-card p-5 md:p-6">
             <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
               My LumiWallet
             </div>
             <div className="rounded-xl bg-muted/60 p-5 text-center">
               <div className="text-xs text-muted-foreground">Current Balance</div>
-              <div className="text-3xl font-bold text-foreground mt-1">
+              <div className="text-2xl md:text-3xl font-bold text-foreground mt-1">
                 {formatNaira(user.balance)}
               </div>
             </div>
-            <Button
-              variant="outline"
-              className="w-full mt-4"
-              onClick={() => topUp(50000)}
-            >
+            <Button variant="outline" className="w-full mt-4" onClick={() => topUp(50000)}>
               <Plus className="h-4 w-4 mr-2" />
               Top Up Wallet
             </Button>
           </div>
 
           {/* Tracker */}
-          <div className="rounded-2xl bg-card border border-border shadow-card p-6">
+          <div className="rounded-2xl bg-card border border-border shadow-card p-5 md:p-6">
             <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-5">
               Real-Time Tracker
             </div>
@@ -305,7 +298,7 @@ export function BuyerDashboard() {
 
 function Spec({ icon: Icon, title, sub }: SpecProps) {
   return (
-    <div className="rounded-xl bg-muted/40 border border-border p-4 text-center">
+    <div className="rounded-xl border border-border bg-muted/40 p-4 text-center min-h-[120px]">
       <Icon className="h-6 w-6 mx-auto text-primary mb-2" />
       <div className="text-sm font-semibold text-foreground">{title}</div>
       <div className="text-xs text-primary mt-0.5">{sub}</div>
@@ -317,8 +310,8 @@ function TrackerStep({ done, active, title, sub, icon: Icon }: TrackerStepProps)
   const color = done
     ? "text-success bg-success-soft"
     : active
-    ? "text-primary bg-primary-soft"
-    : "text-muted-foreground bg-muted";
+      ? "text-primary bg-primary-soft"
+      : "text-muted-foreground bg-muted";
 
   return (
     <li className="flex items-start gap-3">
@@ -326,7 +319,7 @@ function TrackerStep({ done, active, title, sub, icon: Icon }: TrackerStepProps)
         {done ? <Icon className="h-4 w-4" /> : <Circle className="h-3 w-3" />}
       </div>
       <div>
-        <div className="text-sm font-bold uppercase tracking-wide">{title}</div>
+        <div className="text-sm font-bold tracking-wide">{title}</div>
         <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>
       </div>
     </li>

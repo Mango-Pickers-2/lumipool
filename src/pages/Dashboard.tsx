@@ -19,118 +19,82 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Page Metadata
     document.title = "Dashboard — LumiPool";
 
-    const meta = document.querySelector(
-      'meta[name="description"]'
-    );
+    const metaDescription = document.querySelector('meta[name="description"]');
 
-    if (meta) {
-      meta.setAttribute(
+    if (metaDescription) {
+      metaDescription.setAttribute(
         "content",
-        "Manage your LumiPool operations, energy participation and network activity."
+        "Manage your LumiPool operations, energy participation and network activity.",
       );
     }
 
-    // Load Chatwoot Globally
+    // Load Chatwoot once globally
     loadChatwoot();
 
-    // Restore Session
     async function restoreSession() {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
-        // No session
         if (!session?.user) {
           setLoading(false);
           return;
         }
 
-        // Restore Zustand state after refresh
+        // Restore Zustand after refresh
         if (!user) {
-          const metadata =
-            session.user.user_metadata;
-
-          const role =
-            metadata?.role || "buyer";
+          const metadata = session.user.user_metadata;
+          const role = metadata?.role ?? "buyer";
 
           setUser({
-            name:
-              metadata?.name ||
-              "LumiPool User",
+            name: metadata?.name ?? "LumiPool User",
 
             role,
 
-            balance:
-              role === "buyer"
-                ? 100000
-                : role === "supplier"
-                ? 4800000
-                : 320000,
+            balance: role === "buyer" ? 100000 : role === "supplier" ? 4800000 : 320000,
           });
         }
       } catch (error) {
-        console.error(
-          "Dashboard session restore error:",
-          error
-        );
+        console.error("Dashboard session restore error:", error);
       } finally {
         setLoading(false);
       }
     }
 
     restoreSession();
-  }, []);
+  }, [setUser, user]);
 
-  // Loading State
+  // Loading Screen
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 text-center">
+        <div className="flex flex-col items-center gap-4 text-center">
           <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
 
-          <p className="text-sm text-muted-foreground">
-            Loading dashboard...
-          </p>
+          <p className="text-sm text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
-  // Not Authenticated
+  // No User
   if (!user) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
+    return <Navigate to="/login" replace />;
   }
 
   return (
-    <div className="min-h-screen bg-muted/20">
-      {/* Global Navigation */}
+    <div className="min-h-screen bg-muted/20 overflow-x-hidden">
       <Navbar />
 
-      {/* Dashboard Content */}
-      <main className="mx-auto max-w-[1440px] px-6 py-8 lg:px-8">
-        {/* Buyer Dashboard */}
-        {user.role === "buyer" && (
-          <BuyerDashboard />
-        )}
+      <main className="mx-auto w-full max-w-[1440px] px-3 sm:px-6 lg:px-8 py-4 md:py-8 overflow-x-hidden">
+        {user.role === "buyer" && <BuyerDashboard />}
 
-        {/* Supplier Dashboard */}
-        {user.role === "supplier" && (
-          <SupplierDashboard />
-        )}
+        {user.role === "supplier" && <SupplierDashboard />}
 
-        {/* Installer Dashboard */}
-        {user.role === "installer" && (
-          <InstallerDashboard />
-        )}
+        {user.role === "installer" && <InstallerDashboard />}
       </main>
     </div>
   );

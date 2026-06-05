@@ -11,33 +11,31 @@ export default function SupportChat() {
       }
     };
 
-    window.addEventListener(
-      "chatwoot:ready",
-      handleChatwootReady
-    );
+    window.addEventListener("chatwoot:ready", handleChatwootReady);
 
     return () => {
-      window.removeEventListener(
-        "chatwoot:ready",
-        handleChatwootReady
-      );
+      window.removeEventListener("chatwoot:ready", handleChatwootReady);
     };
   }, []);
 
   const toggleChat = () => {
     if (!window.$chatwoot) return;
 
-    if (isOpen) {
-      window.$chatwoot.toggle("close");
-      setIsOpen(false);
-    } else {
-      window.$chatwoot.toggle("open");
-      setIsOpen(true);
-    }
+    const nextState = !isOpen;
+
+    window.$chatwoot.toggle(nextState ? "open" : "close");
+
+    setIsOpen(nextState);
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999]">
+    <div
+      className="fixed z-[9999]"
+      style={{
+        bottom: "max(1rem, env(safe-area-inset-bottom))",
+        right: "max(1rem, env(safe-area-inset-right))",
+      }}
+    >
       {/* Pulse Ring */}
       <div className="absolute inset-0 rounded-full bg-primary/30 animate-ping" />
 
@@ -47,7 +45,8 @@ export default function SupportChat() {
         aria-label="Open Support Chat"
         className="
           relative
-          h-16 w-16
+          h-14 w-14 
+          sm:h-16 sm:w-16
           rounded-full
           bg-primary
           text-primary-foreground
@@ -60,9 +59,9 @@ export default function SupportChat() {
         "
       >
         {isOpen ? (
-          <X className="h-6 w-6" />
+          <X className="h-5 w-5 sm:h-6 sm:w-6" />
         ) : (
-          <MessageCircleMore className="h-7 w-7" />
+          <MessageCircleMore className="h-6 w-6 sm:h-7 sm:w-7" />
         )}
       </button>
 
@@ -83,7 +82,6 @@ export default function SupportChat() {
         "
       >
         <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-
         Support Online
       </div>
     </div>

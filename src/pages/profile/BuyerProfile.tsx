@@ -17,6 +17,14 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { useLumiStore } from "@/store/lumipool";
 
+declare global {
+  interface Window {
+    $chatwoot?: {
+      toggle: (state?: "open" | "close") => void;
+    };
+  }
+}
+
 export default function BuyerProfile() {
   const user = useLumiStore((state) => state.currentUser);
   const logout = useLumiStore((state) => state.logout);
@@ -36,42 +44,46 @@ export default function BuyerProfile() {
     navigate("/login");
   };
 
+  const openSupport = () => {
+    window.$chatwoot?.toggle("open");
+  };
+
   return (
     <div className="min-h-screen bg-muted/20">
       <Navbar />
 
-      <main className="mx-auto max-w-[1150px] px-6 py-10">
-        {/* HEADER */}
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+      <main className="mx-auto max-w-[1150px] px-4 py-8 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="text-xs font-bold uppercase tracking-wider text-primary">
               Buyer Account
             </div>
 
-            <h1 className="mt-2 text-4xl font-bold text-foreground">
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               Welcome back, {user.name}
             </h1>
 
             <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-              Track your solar savings, clean energy participation,
-              and active LumiPool memberships.
+              Track your renewable energy participation, pool memberships, savings and installation
+              progress.
             </p>
           </div>
 
-          <div className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
             <span className="h-2 w-2 rounded-full bg-green-600" />
             Active Buyer
           </div>
         </div>
 
-        {/* IMPACT CARDS */}
+        {/* Impact Cards */}
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <ImpactCard
             tone="success"
             icon={Droplet}
-            label="Fuel Savings"
+            label="Estimated Fuel Savings"
             value="₦45,000 Saved"
-            sub="Reduced generator and petrol expenses through shared solar access."
+            sub="Reduced petrol expenses through shared solar ownership."
           />
 
           <ImpactCard
@@ -79,53 +91,43 @@ export default function BuyerProfile() {
             icon={Zap}
             label="Protected Productivity"
             value="120+ Hours"
-            sub="Stable electricity during outages and grid failures."
+            sub="Reliable power for work, connectivity and home operations."
           />
         </div>
 
-        {/* MEMBERSHIP */}
+        {/* Membership Section */}
         <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-foreground">
-                ⚡ Solar Membership
-              </h2>
+              <h2 className="text-lg font-bold text-foreground">⚡ Solar Membership</h2>
 
               <p className="mt-1 text-sm text-muted-foreground">
                 Overview of your current LumiPool participation.
               </p>
             </div>
 
-            <div className="text-xs font-mono text-muted-foreground">
-              LP-BUY-2048
-            </div>
+            <div className="text-xs font-mono text-muted-foreground">LP-BUY-2048</div>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <InfoCard
-              title="Active Cluster"
-              value="Yaba Solar Pool"
-              sub="4 / 5 Members Joined"
-            />
+            <InfoCard title="Active Cluster" value="Yaba Solar Pool" sub="4 / 5 Members Joined" />
 
             <InfoCard
-              title="Warranty"
+              title="Warranty Coverage"
               value="23 Months Left"
-              sub="Protected hardware coverage"
+              sub="Protected hardware warranty"
             />
 
             <div className="rounded-xl border border-green-200 bg-green-50 p-5">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-green-700" />
 
-                <span className="font-bold text-foreground">
-                  Safe-Hold Active
-                </span>
+                <span className="font-bold text-foreground">Safe-Hold Active</span>
               </div>
 
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Your contribution remains escrow protected until
-                successful delivery and installation confirmation.
+                Funds remain escrow protected until delivery, installation and handover verification
+                are completed.
               </p>
             </div>
           </div>
@@ -138,21 +140,15 @@ export default function BuyerProfile() {
           </div>
         </div>
 
-        {/* MENU */}
+        {/* Actions */}
         <div className="mt-6 space-y-3">
-          <RowLink
-            icon={Settings}
-            label="Account Settings"
-          />
+          <RowLink icon={Settings} label="Account Settings" />
 
           <RowLink
             icon={MessageCircle}
             label="Support & Complaints"
-            trailing={
-              <span className="text-xs text-green-700">
-                ● Admin Online
-              </span>
-            }
+            onClick={openSupport}
+            trailing={<span className="text-xs text-green-700">● Admin Online</span>}
           />
 
           <LogoutButton handleLogout={handleLogout} />
@@ -174,34 +170,19 @@ interface ImpactCardProps {
   tone: "success" | "primary";
 }
 
-function ImpactCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  tone,
-}: ImpactCardProps) {
+function ImpactCard({ icon: Icon, label, value, sub, tone }: ImpactCardProps) {
   const cardStyle =
-    tone === "success"
-      ? "bg-green-50 border-green-200"
-      : "bg-primary/5 border-primary/20";
+    tone === "success" ? "bg-green-50 border-green-200" : "bg-primary/5 border-primary/20";
 
   const iconStyle =
-    tone === "success"
-      ? "bg-green-600 text-white"
-      : "bg-primary text-primary-foreground";
+    tone === "success" ? "bg-green-600 text-white" : "bg-primary text-primary-foreground";
 
-  const textStyle =
-    tone === "success"
-      ? "text-green-700"
-      : "text-primary";
+  const textStyle = tone === "success" ? "text-green-700" : "text-primary";
 
   return (
     <div className={`rounded-2xl border p-6 ${cardStyle}`}>
       <div className="flex items-start gap-4">
-        <div
-          className={`flex h-11 w-11 items-center justify-center rounded-full ${iconStyle}`}
-        >
+        <div className={`flex h-11 w-11 items-center justify-center rounded-full ${iconStyle}`}>
           <Icon className="h-5 w-5" />
         </div>
 
@@ -210,13 +191,9 @@ function ImpactCard({
             {label}
           </div>
 
-          <div className={`mt-1 text-2xl font-bold ${textStyle}`}>
-            {value}
-          </div>
+          <div className={`mt-1 text-2xl font-bold ${textStyle}`}>{value}</div>
 
-          <div className="mt-2 text-xs text-muted-foreground">
-            {sub}
-          </div>
+          <div className="mt-2 text-xs text-muted-foreground">{sub}</div>
         </div>
       </div>
     </div>
@@ -233,24 +210,16 @@ interface InfoCardProps {
   sub: string;
 }
 
-function InfoCard({
-  title,
-  value,
-  sub,
-}: InfoCardProps) {
+function InfoCard({ title, value, sub }: InfoCardProps) {
   return (
     <div className="rounded-xl border border-border bg-muted/40 p-5">
       <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </div>
 
-      <div className="mt-2 text-lg font-bold text-foreground">
-        {value}
-      </div>
+      <div className="mt-2 text-lg font-bold text-foreground">{value}</div>
 
-      <div className="mt-1 text-xs text-primary">
-        {sub}
-      </div>
+      <div className="mt-1 text-xs text-primary">{sub}</div>
     </div>
   );
 }
@@ -263,21 +232,19 @@ interface RowLinkProps {
   icon: LucideIcon;
   label: string;
   trailing?: React.ReactNode;
+  onClick?: () => void;
 }
 
-function RowLink({
-  icon: Icon,
-  label,
-  trailing,
-}: RowLinkProps) {
+function RowLink({ icon: Icon, label, trailing, onClick }: RowLinkProps) {
   return (
-    <button className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-5 py-4 transition hover:bg-muted/40">
+    <button
+      onClick={onClick}
+      className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-5 py-4 transition hover:bg-muted/40"
+    >
       <div className="flex items-center gap-3">
         <Icon className="h-5 w-5 text-muted-foreground" />
 
-        <span className="font-medium text-foreground">
-          {label}
-        </span>
+        <span className="font-medium text-foreground">{label}</span>
       </div>
 
       <div className="flex items-center gap-3">
@@ -297,9 +264,7 @@ interface LogoutButtonProps {
   handleLogout: () => void;
 }
 
-function LogoutButton({
-  handleLogout,
-}: LogoutButtonProps) {
+function LogoutButton({ handleLogout }: LogoutButtonProps) {
   return (
     <button
       onClick={handleLogout}
@@ -308,9 +273,7 @@ function LogoutButton({
       <div className="flex items-center gap-3">
         <LogOut className="h-5 w-5 text-red-600" />
 
-        <span className="font-semibold text-red-600">
-          Log Out
-        </span>
+        <span className="font-semibold text-red-600">Log Out</span>
       </div>
 
       <ChevronRight className="h-4 w-4 text-red-600" />
