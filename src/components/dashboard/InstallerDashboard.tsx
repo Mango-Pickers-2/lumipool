@@ -9,21 +9,27 @@ import {
   Package,
   Star,
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { addDoc, collection, doc, getDocs, orderBy, query, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { uploadInstallationProof } from "@/lib/cloudinary";
 import { useLumiStore, formatNaira } from "@/store/lumipool";
 import { Button } from "@/components/ui/button";
+import { WorkEvidencePanel } from "@/components/WorkEvidencePanel";
+import { PaymentCenter } from "@/components/PaymentCenter";
 
 export function InstallerDashboard() {
   const zustandJobs = useLumiStore((s) => s.dispatchJobs);
   const completeJob = useLumiStore((s) => s.completeJob);
+  const user = useLumiStore((s) => s.currentUser);
 
   const [dbJobs, setDbJobs] = useState<any[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loadingJobs, setLoadingJobs] = useState(true);
+  const [uploadError, setUploadError] = useState("");
 
-  // Merge Supabase jobs + Zustand jobs (deduplicated by id)
+  // Merge Firestore jobs + Zustand jobs (deduplicated by id)
   const jobs = useMemo(() => {
     const map = new Map<string, any>();
     dbJobs.forEach((j) =>
@@ -43,13 +49,11 @@ export function InstallerDashboard() {
   useEffect(() => {
     async function fetchJobs() {
       setLoadingJobs(true);
-      const { data, error } = await supabase
-        .from("dispatch_jobs")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        setDbJobs(data);
+      try {
+        const snapshot = await getDocs(query(collection(db, "dispatch_jobs"), orderBy("created_at", "desc")));
+        setDbJobs(snapshot.docs.map((item) => ({ id: item.id, ...item.data() })));
+      } catch (error) {
+        console.error("Could not load dispatch jobs:", error);
       }
       setLoadingJobs(false);
     }
@@ -67,26 +71,27 @@ export function InstallerDashboard() {
   async function handleUploadAndComplete() {
     if (!photo || !selected) return;
     setUploading(true);
-
-    // Upload photo to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from("installations")
-      .upload(`jobs/${selected.id}/${Date.now()}_${photo.name}`, photo);
-
-    if (uploadError) {
-      console.error("Upload failed:", uploadError.message);
-      setUploading(false);
-      return;
-    }
-
-    // Update job status in Supabase
-    const { error: updateError } = await supabase
-      .from("dispatch_jobs")
-      .update({ status: "complete" })
-      .eq("id", selected.id);
-
-    if (updateError) {
-      console.error("Status update failed:", updateError.message);
+    setUploadError("");
+    try {
+      const proof = await uploadInstallationProof(photo, selected.id);
+      await updateDoc(doc(db, "dispatch_jobs", selected.id), {
+        status: "complete",
+        proof_image_url: proof.secureUrl,
+        proof_public_id: proof.publicId,
+        completed_at: Date.now(),
+      });
+      await addDoc(collection(db, "notifications"), {
+        recipientRole: "buyer",
+        title: "Installation marked complete",
+        message: "The installer uploaded completion proof. Review the installation and confirm it or report a problem.",
+        jobId: selected.id,
+        read: false,
+        createdAt: Date.now(),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not upload installation proof.";
+      console.error("Proof upload failed:", error);
+      setUploadError(message);
       setUploading(false);
       return;
     }
@@ -114,6 +119,7 @@ export function InstallerDashboard() {
 
   return (
     <div className="space-y-6">
+      {user && <PaymentCenter user={user} />}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Installer Hub</h1>
@@ -288,6 +294,7 @@ export function InstallerDashboard() {
                     <Wrench className="h-4 w-4 mr-2" />
                     {uploading ? "Uploading..." : "Mark as Complete & Release Payment"}
                   </Button>
+                  {uploadError && <p className="text-sm text-destructive" role="alert">{uploadError}</p>}
                 </div>
               ) : (
                 <div className="rounded-xl bg-success-soft border border-success/20 p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -308,6 +315,7 @@ export function InstallerDashboard() {
           )}
         </div>
       </div>
+      {user?.id && <WorkEvidencePanel role="installer" userId={user.id} jobId={selected?.id} />}
     </div>
   );
 }

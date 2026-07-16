@@ -10,6 +10,7 @@ import {
 
 import { useLumiStore, formatNaira } from "@/store/lumipool";
 import { Logo } from "./Logo";
+import { NotificationBell } from "./NotificationBell";
 
 import {
   Avatar,
@@ -58,6 +59,8 @@ export function Navbar() {
               {user.role}
             </div>
 
+            <NotificationBell role={user.role} />
+
             <button
               onClick={() => navigate("/profile")}
               className="flex items-center gap-3 rounded-full hover:bg-muted px-2 py-1 transition"
@@ -81,16 +84,15 @@ export function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            onClick={() => setOpen(!open)}
-            className="md:hidden flex items-center justify-center h-10 w-10 rounded-lg hover:bg-muted"
-          >
-            {open ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <NotificationBell role={user.role} />
+            <button
+              onClick={() => setOpen(!open)}
+              className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-muted"
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Drawer */}

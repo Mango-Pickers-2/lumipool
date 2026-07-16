@@ -52,15 +52,15 @@ export default function BuyerProfile() {
     <div className="min-h-screen bg-muted/20">
       <Navbar />
 
-      <main className="mx-auto max-w-[1150px] px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1150px] px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="text-xs font-bold uppercase tracking-wider text-primary">
               Buyer Account
             </div>
 
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
               Welcome back, {user.name}
             </h1>
 
@@ -77,7 +77,7 @@ export default function BuyerProfile() {
         </div>
 
         {/* Impact Cards */}
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:gap-5 md:grid-cols-2">
           <ImpactCard
             tone="success"
             icon={Droplet}
@@ -109,7 +109,7 @@ export default function BuyerProfile() {
             <div className="text-xs font-mono text-muted-foreground">LP-BUY-2048</div>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-5 grid gap-3 sm:gap-4 md:grid-cols-3">
             <InfoCard title="Active Cluster" value="Yaba Solar Pool" sub="4 / 5 Members Joined" />
 
             <InfoCard
@@ -133,7 +133,7 @@ export default function BuyerProfile() {
           </div>
 
           <div className="mt-5">
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               <TrendingUp className="mr-2 h-4 w-4" />
               Upgrade System
             </Button>
@@ -181,7 +181,7 @@ function ImpactCard({ icon: Icon, label, value, sub, tone }: ImpactCardProps) {
 
   return (
     <div className={`rounded-2xl border p-6 ${cardStyle}`}>
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3 sm:gap-4">
         <div className={`flex h-11 w-11 items-center justify-center rounded-full ${iconStyle}`}>
           <Icon className="h-5 w-5" />
         </div>
@@ -191,7 +191,7 @@ function ImpactCard({ icon: Icon, label, value, sub, tone }: ImpactCardProps) {
             {label}
           </div>
 
-          <div className={`mt-1 text-2xl font-bold ${textStyle}`}>{value}</div>
+          <div className={`mt-1 text-xl sm:text-2xl font-bold ${textStyle}`}>{value}</div>
 
           <div className="mt-2 text-xs text-muted-foreground">{sub}</div>
         </div>
@@ -239,7 +239,7 @@ function RowLink({ icon: Icon, label, trailing, onClick }: RowLinkProps) {
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-5 py-4 transition hover:bg-muted/40"
+      className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 sm:px-5 py-4 transition active:scale-[0.98] hover:bg-muted/40"
     >
       <div className="flex items-center gap-3">
         <Icon className="h-5 w-5 text-muted-foreground" />
@@ -268,7 +268,7 @@ function LogoutButton({ handleLogout }: LogoutButtonProps) {
   return (
     <button
       onClick={handleLogout}
-      className="flex w-full items-center justify-between rounded-xl border border-red-200 bg-red-50 px-5 py-4 transition hover:bg-red-100"
+      className="flex w-full items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 sm:px-5 py-4 transition active:scale-[0.98] hover:bg-red-100"
     >
       <div className="flex items-center gap-3">
         <LogOut className="h-5 w-5 text-red-600" />

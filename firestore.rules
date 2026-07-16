@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    match /users/{userId} {
+      allow create, read, update: if signedIn() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+    match /pools/{poolId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && userRole() == "buyer";
+      allow delete: if false;
+    }
+    match /purchase_orders/{orderId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && userRole() == "buyer";
+      allow update: if signedIn() && userRole() == "supplier";
+      allow delete: if false;
+    }
+    match /dispatch_jobs/{jobId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && userRole() == "buyer";
+      allow update: if signedIn() && userRole() == "installer";
+      allow delete: if false;
+    }
+    match /work_reports/{reportId} {
+      allow create: if signedIn()
+        && request.resource.data.submittedBy == request.auth.uid
+        && request.resource.data.submittedByRole == userRole();
+      allow read: if signedIn();
+      allow update: if signedIn()
+        && (resource.data.submittedBy == request.auth.uid || userRole() in ["buyer", "installer"]);
+      allow delete: if false;
+    }
+    match /notifications/{notificationId} {
+      allow create: if signedIn();
+      allow read, update: if signedIn() && resource.data.recipientRole == userRole();
+      allow delete: if false;
+    }
+    match /pool_memberships/{membershipId} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+    match /safe_holds/{holdId} {
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid && request.resource.data.status == "held";
+      allow read: if signedIn() && (resource.data.ownerId == request.auth.uid || userRole() in ["supplier", "installer"]);
+      allow update, delete: if false;
+    }
+    match /payments/{paymentId} {
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid && request.resource.data.status == "verified";
+      allow read: if signedIn() && resource.data.ownerId == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, Package, CheckCircle2, TrendingUp, ShieldCheck, LucideIcon } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { collection, doc, getDocs, orderBy, query, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { useLumiStore } from "@/store/lumipool";
 import { Button } from "@/components/ui/button";
+import { PaymentCenter } from "@/components/PaymentCenter";
 
 interface StatCardProps {
   icon: LucideIcon;
@@ -13,6 +15,7 @@ interface StatCardProps {
 }
 
 export function SupplierDashboard() {
+  const user = useLumiStore((s) => s.currentUser);
   const networkState = useLumiStore((s) => s.networkState);
   const zustandOrders = useLumiStore((s) => s.purchaseOrders);
   const confirmInventory = useLumiStore((s) => s.confirmInventory);
@@ -24,7 +27,7 @@ export function SupplierDashboard() {
 
   const me = network[0];
 
-  // Merge Supabase orders + Zustand orders (deduplicated by id)
+  // Merge Firestore orders + Zustand orders (deduplicated by id)
   const orders = useMemo(() => {
     const map = new Map<string, any>();
     dbOrders.forEach((o) =>
@@ -42,13 +45,11 @@ export function SupplierDashboard() {
   useEffect(() => {
     async function fetchOrders() {
       setLoadingOrders(true);
-      const { data, error } = await supabase
-        .from("purchase_orders")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        setDbOrders(data);
+      try {
+        const snapshot = await getDocs(query(collection(db, "purchase_orders"), orderBy("created_at", "desc")));
+        setDbOrders(snapshot.docs.map((item) => ({ id: item.id, ...item.data() })));
+      } catch (error) {
+        console.error("Could not load purchase orders:", error);
       }
       setLoadingOrders(false);
     }
@@ -56,14 +57,11 @@ export function SupplierDashboard() {
   }, []);
 
   async function handleConfirmInventory(orderId: string) {
-    // Update Supabase
-    const { error } = await supabase
-      .from("purchase_orders")
-      .update({ status: "picked-up" })
-      .eq("id", orderId);
-
-    if (error) {
-      console.error("Failed to confirm inventory:", error.message);
+    // Persist before updating the optimistic local state.
+    try {
+      await updateDoc(doc(db, "purchase_orders", orderId), { status: "picked-up" });
+    } catch (error) {
+      console.error("Failed to confirm inventory:", error);
       return;
     }
 
@@ -81,10 +79,11 @@ export function SupplierDashboard() {
 
   const fulfilledOrders = useMemo(() => orders.filter((o) => o.status === "picked-up"), [orders]);
 
-  if (!me) return null;
+  if (!me || !user) return null;
 
   return (
-       <div className="space-y-6">  
+       <div className="space-y-6">
+      <PaymentCenter user={user} />
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Supplier Hub</h1>

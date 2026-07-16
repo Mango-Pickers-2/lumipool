@@ -12,9 +12,13 @@ import {
   Wrench,
   LucideIcon,
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { doc, getDoc, runTransaction, setDoc, writeBatch } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { useLumiStore, formatNaira } from "@/store/lumipool";
+import { WorkEvidencePanel } from "@/components/WorkEvidencePanel";
+import { startPaystackPayment, verifyPaystackPayment } from "@/lib/payments";
+import { PaymentCenter } from "@/components/PaymentCenter";
 
 interface SpecProps {
   icon: LucideIcon;
@@ -44,13 +48,12 @@ export function BuyerDashboard() {
     async function fetchBuyerData() {
       setLoading(true);
 
-      // Fetch pool from Supabase
-      const { data, error } = await supabase.from("pools").select("*").eq("id", "Yaba-01").single();
-
-      if (error) {
-        // Table exists but no row yet — insert the default pool
-        if (error.code === "PGRST116") {
-          await supabase.from("pools").insert({
+      // Fetch the shared pool from Firestore.
+      try {
+        const poolRef = doc(db, "pools", "Yaba-01");
+        const snapshot = await getDoc(poolRef);
+        if (!snapshot.exists()) {
+          await setDoc(poolRef, {
             id: pool.id,
             cluster: pool.cluster,
             members: pool.members,
@@ -60,9 +63,11 @@ export function BuyerDashboard() {
             price_per_member: pool.pricePerMember,
             deposit: pool.deposit,
           });
+        } else {
+          setDbPool(snapshot.data());
         }
-      } else {
-        setDbPool(data);
+      } catch (error) {
+        console.error("Could not load pool:", error);
       }
 
       setLoading(false);
@@ -71,34 +76,40 @@ export function BuyerDashboard() {
     fetchBuyerData();
   }, []);
 
-  // Sync join pool action to Supabase
-  async function handleJoinPool() {
-    joinPool(); // update Zustand
+  // Keep the shared member count safe when multiple buyers join concurrently.
+  async function completePaidPoolJoin(paymentReference: string) {
+    const result = await runTransaction(db, async (transaction) => {
+      const poolRef = doc(db, "pools", pool.id);
+      const membershipRef = doc(db, "pool_memberships", `${pool.id}_${user!.id}`);
+      const membership = await transaction.get(membershipRef);
+      if (membership.exists()) return { joined: false, filled: false };
+      const snapshot = await transaction.get(poolRef);
+      const current = snapshot.exists() ? snapshot.data() : pool;
+      if (current.status === "filled") return { joined: false, filled: true };
+      const members = Math.min(current.target, current.members + 1);
+      const filled = members >= current.target;
+      transaction.set(poolRef, { ...current, id: pool.id, members, status: filled ? "filled" : "open" });
+      transaction.set(membershipRef, { poolId: pool.id, userId: user!.id, paymentReference, amount: pool.deposit, status: "active", joinedAt: Date.now() });
+      transaction.set(doc(db, "safe_holds", paymentReference), { ownerId: user!.id, poolId: pool.id, amount: pool.deposit, currency: "NGN", paymentReference, status: "held", releaseCondition: "supplier-delivered-and-installation-confirmed", createdAt: Date.now() });
+      return { joined: true, filled };
+    });
+    if (!result.joined) return;
+    joinPool();
 
-    const newMembers = Math.min(pool.target, pool.members + 1);
-    const filled = newMembers >= pool.target;
-
-    await supabase
-      .from("pools")
-      .update({
-        members: newMembers,
-        status: filled ? "filled" : "open",
-      })
-      .eq("id", pool.id);
-
-    // If filled, create purchase order + dispatch job in Supabase
-    if (filled) {
+    // When filled, create the order and dispatch job in one atomic batch.
+    if (result.filled) {
       const orderId = `PO-${Date.now().toString().slice(-5)}`;
       const jobId = `DJ-${Date.now().toString().slice(-5)}`;
 
-      await supabase.from("purchase_orders").insert({
+      const batch = writeBatch(db);
+      batch.set(doc(db, "purchase_orders", orderId), {
         id: orderId,
         description: `5x ${pool.bundle} | Safe-Hold Confirmed`,
         status: "safe-hold-confirmed",
         created_at: Date.now(),
       });
 
-      await supabase.from("dispatch_jobs").insert({
+      batch.set(doc(db, "dispatch_jobs", jobId), {
         id: jobId,
         cluster: pool.cluster,
         location: "Yaba, Lagos",
@@ -106,8 +117,29 @@ export function BuyerDashboard() {
         status: "queued",
         created_at: Date.now(),
       });
+      await batch.commit();
     }
   }
+
+  async function handleJoinPool() {
+    if (!user?.id || !user.email) return;
+    await startPaystackPayment({ email: user.email, userId: user.id, paymentType: "buyer_pool" });
+  }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get("reference") || params.get("trxref");
+    if (!reference || params.get("payment_type") !== "buyer_pool") return;
+    if (sessionStorage.getItem(`verified-${reference}`)) return;
+    verifyPaystackPayment(reference)
+      .then(async (payment) => {
+        if (payment.userId !== user?.id || payment.paymentType !== "buyer_pool") throw new Error("Payment owner mismatch");
+        await completePaidPoolJoin(reference);
+        sessionStorage.setItem(`verified-${reference}`, "true");
+        window.history.replaceState({}, "", "/dashboard");
+      })
+      .catch((error) => console.error("Pool payment verification failed:", error));
+  }, [user?.id]);
 
   const pct = useMemo(() => {
     if (!pool || pool.target <= 0) return 0;
@@ -128,6 +160,7 @@ export function BuyerDashboard() {
 
   return (
     <div>
+      <PaymentCenter user={user} />
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
@@ -292,6 +325,7 @@ export function BuyerDashboard() {
           </div>
         </div>
       </div>
+      {user.id && <div className="mt-6"><WorkEvidencePanel role="buyer" userId={user.id} /></div>}
     </div>
   );
 }

@@ -2,6 +2,19 @@
 @source "../src";
 @import "tw-animate-css";
 
+.international-phone-input .PhoneInputInput {
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  outline: none;
+}
+
+.international-phone-input .PhoneInputCountrySelect {
+  color: initial;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

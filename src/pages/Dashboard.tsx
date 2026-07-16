@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 
-import { supabase } from "@/lib/supabase";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 import { Navbar } from "@/components/Navbar";
 
@@ -10,6 +12,7 @@ import { SupplierDashboard } from "@/components/dashboard/SupplierDashboard";
 import { InstallerDashboard } from "@/components/dashboard/InstallerDashboard";
 
 import { useLumiStore } from "@/store/lumipool";
+import { ensureMonthlyRoutineReminder } from "@/lib/workflow";
 
 export default function Dashboard() {
   const user = useLumiStore((state) => state.currentUser);
@@ -29,36 +32,36 @@ export default function Dashboard() {
       );
     }
 
-    async function restoreSession() {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        if (!session?.user) {
-          setLoading(false);
-          return;
-        }
-
-        if (!user) {
-          const metadata = session.user.user_metadata;
-          const role = metadata?.role ?? "buyer";
-
-          setUser({
-            name: metadata?.name ?? "LumiPool User",
-            role,
-            balance: role === "buyer" ? 100000 : role === "supplier" ? 4800000 : 320000,
-          });
-        }
+        if (!firebaseUser || user) return;
+        const snapshot = await getDoc(doc(db, "users", firebaseUser.uid));
+        const profile = snapshot.data();
+        const role = profile?.role ?? "buyer";
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? undefined,
+          phone: profile?.phone,
+          name: profile?.name ?? "LumiPool User",
+          role,
+          balance: role === "buyer" ? 100000 : role === "supplier" ? 4800000 : 320000,
+        });
       } catch (error) {
         console.error("Dashboard session restore error:", error);
       } finally {
         setLoading(false);
       }
-    }
-
-    restoreSession();
+    });
+    return unsubscribe;
   }, [setUser, user]);
+
+  useEffect(() => {
+    if (user?.id) {
+      ensureMonthlyRoutineReminder(user.id, user.role).catch((error) =>
+        console.error("Could not create monthly routine reminder:", error),
+      );
+    }
+  }, [user?.id, user?.role]);
 
   if (loading) {
     return (

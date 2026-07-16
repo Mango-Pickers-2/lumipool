@@ -19,7 +19,8 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 
-import { supabase } from "@/lib/supabase";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { useLumiStore } from "@/store/lumipool";
 
 export default function Profile() {
@@ -48,7 +49,7 @@ export default function Profile() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut(auth);
 
     logout();
 

@@ -15,7 +15,9 @@ import {
 
 import { Logo } from "@/components/Logo";
 
-import { supabase } from "@/lib/supabase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 import {
   useLumiStore,
@@ -34,7 +36,7 @@ export default function Login() {
   const [role, setRole] =
     useState<Role>("buyer");
 
-  const [phone, setPhone] =
+  const [email, setEmail] =
     useState("");
 
   const [password, setPassword] =
@@ -100,33 +102,21 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const sanitizedPhone =
-        phone.replace(/\s+/g, "");
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      const profileSnapshot = await getDoc(doc(db, "users", credential.user.uid));
+      let metadata = profileSnapshot.data();
 
-      const email =
-        `${sanitizedPhone}@lumipool.app`;
-
-      const {
-        data,
-        error: authError,
-      } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-      if (authError) {
-        setError(
-          "Invalid phone number or password."
-        );
-
-        setLoading(false);
-
-        return;
+      if (!profileSnapshot.exists()) {
+        const recoveredProfile = {
+          name: email.split("@")[0],
+          email: credential.user.email ?? email,
+          role,
+          createdAt: Date.now(),
+          recoveredAt: Date.now(),
+        };
+        await setDoc(doc(db, "users", credential.user.uid), recoveredProfile);
+        metadata = recoveredProfile;
       }
-
-      const metadata =
-        data.user.user_metadata;
 
       // IMPORTANT
       // restore role from metadata
@@ -136,9 +126,11 @@ export default function Login() {
         metadata?.role || role;
 
       setUser({
+        id: credential.user.uid,
+        email,
         name:
           metadata?.name ||
-          sanitizedPhone,
+          email,
 
         role: resolvedRole,
 
@@ -155,7 +147,7 @@ export default function Login() {
       console.error(err);
 
       setError(
-        "Something went wrong. Please try again."
+        "Invalid email address or password."
       );
     } finally {
       setLoading(false);
@@ -163,16 +155,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-muted flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-2xl">
+    <div className="min-h-dvh overflow-y-auto bg-muted flex items-start sm:items-center justify-center px-3 py-3 sm:px-4 sm:py-6">
+      <div className="w-full max-w-md rounded-2xl sm:rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-2xl">
         {/* Logo */}
-        <div className="mb-8 flex justify-center">
+        <div className="mb-3 sm:mb-4 flex justify-center">
           <Logo size="lg" />
         </div>
 
         {/* Heading */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Welcome to LumiPool
           </h1>
 
@@ -182,7 +174,7 @@ export default function Login() {
         </div>
 
         {/* Role Selector */}
-        <div className="mt-8 grid grid-cols-3 gap-3">
+        <div className="mt-4 sm:mt-5 grid grid-cols-3 gap-2 sm:gap-3">
           {roles.map((item) => {
             const Icon = item.icon;
 
@@ -196,7 +188,7 @@ export default function Login() {
                 onClick={() =>
                   setRole(item.id)
                 }
-                className={`rounded-2xl border p-4 transition-all ${
+                className={`min-w-0 rounded-xl sm:rounded-2xl border p-2.5 sm:p-3 transition-all ${
                   active
                     ? "border-primary bg-primary text-primary-foreground shadow-lg"
                     : "border-border bg-card hover:bg-muted"
@@ -204,7 +196,7 @@ export default function Login() {
               >
                 <Icon className="mx-auto h-5 w-5" />
 
-                <div className="mt-2 text-sm font-semibold">
+                <div className="mt-1 truncate text-xs sm:text-sm font-semibold">
                   {item.label}
                 </div>
               </button>
@@ -215,29 +207,30 @@ export default function Login() {
         {/* Form */}
         <form
           onSubmit={handleLogin}
-          className="mt-8 space-y-5"
+          className="mt-4 sm:mt-5 space-y-3.5 sm:space-y-4"
         >
           {/* Phone */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-foreground">
-              Phone Number
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Email Address
             </label>
 
             <input
-              type="text"
+              type="email"
+              autoComplete="email"
               required
-              placeholder="+234 80 1234 5678"
-              value={phone}
+              placeholder="you@example.com"
+              value={email}
               onChange={(e) =>
-                setPhone(e.target.value)
+                setEmail(e.target.value.trim())
               }
-              className="h-12 w-full rounded-xl border border-input bg-background px-4 text-foreground outline-none transition focus:ring-2 focus:ring-ring"
+              className="h-11 w-full rounded-xl border border-input bg-background px-4 text-foreground outline-none transition focus:ring-2 focus:ring-ring"
             />
           </div>
 
           {/* Password */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-foreground">
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
               Password
             </label>
 
@@ -256,7 +249,7 @@ export default function Login() {
                     e.target.value
                   )
                 }
-                className="h-12 w-full rounded-xl border border-input bg-background px-4 pr-12 text-foreground outline-none transition focus:ring-2 focus:ring-ring"
+                className="h-11 w-full rounded-xl border border-input bg-background px-4 pr-12 text-foreground outline-none transition focus:ring-2 focus:ring-ring"
               />
 
               <button
@@ -266,7 +259,7 @@ export default function Login() {
                     !showPassword
                   )
                 }
-                className="absolute right-4 top-3"
+                className="absolute right-4 top-2.5"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5 text-muted-foreground" />
@@ -288,7 +281,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="h-12 w-full rounded-xl bg-primary font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
+            className="h-11 w-full rounded-xl bg-primary font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
           >
             {loading
               ? "Signing in..."
